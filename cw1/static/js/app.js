@@ -1,9 +1,13 @@
 // Employee Management System JavaScript
 
 const API_BASE = '/api';
+const AUTH_TOKEN_KEY = 'employeeApiToken';
+let authToken = localStorage.getItem(AUTH_TOKEN_KEY) || '';
 
 // Load employees on page load
 document.addEventListener('DOMContentLoaded', function() {
+    setupAuthForms();
+    updateAuthUI();
     loadEmployees();
     loadStats();
 
@@ -13,6 +17,146 @@ document.addEventListener('DOMContentLoaded', function() {
         addEmployee();
     });
 });
+
+function setupAuthForms() {
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
+
+    loginForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        login();
+    });
+
+    registerForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        register();
+    });
+}
+
+function isAuthenticated() {
+    return Boolean(authToken);
+}
+
+function getHeaders(includeContentType = false) {
+    const headers = {};
+    if (includeContentType) {
+        headers['Content-Type'] = 'application/json';
+    }
+    if (authToken) {
+        headers.Authorization = `Token ${authToken}`;
+    }
+    return headers;
+}
+
+function updateAuthUI() {
+    const authStatus = document.getElementById('authStatus');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const addEmployeeBtn = document.getElementById('addEmployeeBtn');
+    const updateEmployeeBtn = document.getElementById('updateEmployeeBtn');
+    const loginForm = document.getElementById('loginForm');
+
+    if (isAuthenticated()) {
+        authStatus.textContent = 'Logged in. Create/Update/Delete operations are enabled.';
+        authStatus.className = 'mb-3 text-success';
+        logoutBtn.style.display = 'inline-block';
+        addEmployeeBtn.disabled = false;
+        updateEmployeeBtn.disabled = false;
+        loginForm.querySelectorAll('input').forEach((input) => {
+            input.disabled = true;
+        });
+    } else {
+        authStatus.textContent = 'Not logged in. Write operations require login.';
+        authStatus.className = 'mb-3 text-muted';
+        logoutBtn.style.display = 'none';
+        addEmployeeBtn.disabled = true;
+        updateEmployeeBtn.disabled = true;
+        loginForm.querySelectorAll('input').forEach((input) => {
+            input.disabled = false;
+        });
+    }
+}
+
+async function login() {
+    const payload = {
+        username: document.getElementById('loginUsername').value.trim(),
+        password: document.getElementById('loginPassword').value,
+    };
+
+    try {
+        const response = await fetch(`${API_BASE}/auth/`, {
+            method: 'POST',
+            headers: getHeaders(true),
+            body: JSON.stringify(payload),
+        });
+        const data = await response.json();
+        if (!response.ok) {
+            showAlert(`Login failed: ${formatApiError(data)}`, 'danger');
+            return;
+        }
+
+        authToken = data.token;
+        localStorage.setItem(AUTH_TOKEN_KEY, authToken);
+        updateAuthUI();
+        showAlert(`Logged in as ${data.username}`, 'success');
+    } catch (error) {
+        console.error('Login error:', error);
+        showAlert('Login request failed', 'danger');
+    }
+}
+
+async function register() {
+    const payload = {
+        username: document.getElementById('registerUsername').value.trim(),
+        email: document.getElementById('registerEmail').value.trim(),
+        password: document.getElementById('registerPassword').value,
+    };
+
+    try {
+        const response = await fetch(`${API_BASE}/auth/register/`, {
+            method: 'POST',
+            headers: getHeaders(true),
+            body: JSON.stringify(payload),
+        });
+        const data = await response.json();
+        if (!response.ok) {
+            showAlert(`Register failed: ${formatApiError(data)}`, 'danger');
+            return;
+        }
+
+        authToken = data.token;
+        localStorage.setItem(AUTH_TOKEN_KEY, authToken);
+        document.getElementById('registerForm').reset();
+        updateAuthUI();
+        showAlert(`Registered and logged in as ${data.username}`, 'success');
+    } catch (error) {
+        console.error('Register error:', error);
+        showAlert('Registration request failed', 'danger');
+    }
+}
+
+function logout() {
+    authToken = '';
+    localStorage.removeItem(AUTH_TOKEN_KEY);
+    document.getElementById('loginForm').reset();
+    updateAuthUI();
+    showAlert('Logged out', 'info');
+}
+
+function formatApiError(errorData) {
+    if (!errorData) {
+        return 'Unknown error';
+    }
+    if (typeof errorData === 'string') {
+        return errorData;
+    }
+    if (errorData.detail) {
+        return errorData.detail;
+    }
+    if (errorData.error) {
+        return errorData.error;
+    }
+    return JSON.stringify(errorData);
+}
 
 // Load all employees
 async function loadEmployees() {
@@ -40,6 +184,7 @@ async function loadStats() {
 // Display employees in table
 function displayEmployees(employees) {
     const container = document.getElementById('employeesList');
+    const canWrite = isAuthenticated();
 
     if (employees.length === 0) {
         container.innerHTML = '<p class="text-muted">No employees found.</p>';
@@ -78,8 +223,8 @@ function displayEmployees(employees) {
                 <td>${hireDate}</td>
                 <td>${salary}</td>
                 <td>
-                    <button class="btn btn-sm btn-outline-primary me-1" onclick="editEmployee(${employee.id})">Edit</button>
-                    <button class="btn btn-sm btn-outline-danger" onclick="deleteEmployee(${employee.id})">Delete</button>
+                    <button class="btn btn-sm btn-outline-primary me-1" onclick="editEmployee(${employee.id})" ${canWrite ? '' : 'disabled'}>Edit</button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="deleteEmployee(${employee.id})" ${canWrite ? '' : 'disabled'}>Delete</button>
                 </td>
             </tr>
         `;
@@ -125,6 +270,11 @@ function displayStats(stats) {
 
 // Add new employee
 async function addEmployee() {
+    if (!isAuthenticated()) {
+        showAlert('Please login first to create employee records.', 'warning');
+        return;
+    }
+
     const employeeData = {
         emp_id: parseInt(document.getElementById('empId').value),
         first_name: document.getElementById('firstName').value,
@@ -139,9 +289,7 @@ async function addEmployee() {
     try {
         const response = await fetch(`${API_BASE}/employees/`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers: getHeaders(true),
             body: JSON.stringify(employeeData),
         });
 
@@ -152,7 +300,7 @@ async function addEmployee() {
             loadStats();
         } else {
             const error = await response.json();
-            showAlert(`Error: ${JSON.stringify(error)}`, 'danger');
+            showAlert(`Error: ${formatApiError(error)}`, 'danger');
         }
     } catch (error) {
         console.error('Error adding employee:', error);
@@ -181,6 +329,11 @@ async function searchEmployees() {
 
 // Edit employee
 async function editEmployee(id) {
+    if (!isAuthenticated()) {
+        showAlert('Please login first to edit employees.', 'warning');
+        return;
+    }
+
     try {
         const response = await fetch(`${API_BASE}/employees/${id}/`);
         const employee = await response.json();
@@ -207,6 +360,11 @@ async function editEmployee(id) {
 
 // Update employee
 async function updateEmployee() {
+    if (!isAuthenticated()) {
+        showAlert('Please login first to update employee records.', 'warning');
+        return;
+    }
+
     const id = document.getElementById('editEmployeeId').value;
     const employeeData = {
         emp_id: parseInt(document.getElementById('editEmpId').value),
@@ -222,9 +380,7 @@ async function updateEmployee() {
     try {
         const response = await fetch(`${API_BASE}/employees/${id}/`, {
             method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers: getHeaders(true),
             body: JSON.stringify(employeeData),
         });
 
@@ -235,7 +391,7 @@ async function updateEmployee() {
             loadStats();
         } else {
             const error = await response.json();
-            showAlert(`Error: ${JSON.stringify(error)}`, 'danger');
+            showAlert(`Error: ${formatApiError(error)}`, 'danger');
         }
     } catch (error) {
         console.error('Error updating employee:', error);
@@ -245,6 +401,11 @@ async function updateEmployee() {
 
 // Delete employee
 async function deleteEmployee(id) {
+    if (!isAuthenticated()) {
+        showAlert('Please login first to delete employee records.', 'warning');
+        return;
+    }
+
     if (!confirm('Are you sure you want to delete this employee?')) {
         return;
     }
@@ -252,6 +413,7 @@ async function deleteEmployee(id) {
     try {
         const response = await fetch(`${API_BASE}/employees/${id}/`, {
             method: 'DELETE',
+            headers: getHeaders(),
         });
 
         if (response.ok) {

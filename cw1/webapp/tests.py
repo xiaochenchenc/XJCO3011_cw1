@@ -1,12 +1,23 @@
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
+from rest_framework.authtoken.models import Token
+from django.contrib.auth.models import User
 
 from .models import Employee
 
 
 class EmployeeAPITestCase(APITestCase):
     def setUp(self):
+        # Create test user and token
+        self.user = User.objects.create_user(
+            username='testuser',
+            email='test@example.com',
+            password='testpass123'
+        )
+        self.token = Token.objects.create(user=self.user)
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
+
         self.employee = Employee.objects.create(
             emp_id=1001,
             first_name='Alice',

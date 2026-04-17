@@ -4,13 +4,73 @@
 
 `/api/`
 
+## Authentication
+
+This API uses Token Authentication. Include the token in the Authorization header:
+
+```
+Authorization: Token <your-token-here>
+```
+
+### Register a new user
+
+- URL: `POST /api/auth/register/`
+- Content-Type: `application/json`
+
+Request Body:
+```json
+{
+  "username": "your_username",
+  "email": "your_email@example.com",
+  "password": "your_password"
+}
+```
+
+Response (201 Created):
+```json
+{
+  "token": "your-auth-token",
+  "user_id": 1,
+  "email": "your_email@example.com",
+  "username": "your_username",
+  "message": "User created successfully"
+}
+```
+
+### Login
+
+- URL: `POST /api/auth/`
+- Content-Type: `application/json`
+
+Request Body:
+```json
+{
+  "username": "your_username",
+  "password": "your_password"
+}
+```
+
+Response (200 OK):
+```json
+{
+  "token": "your-auth-token",
+  "user_id": 1,
+  "email": "your_email@example.com",
+  "username": "your_username"
+}
+```
+
+**Note:** Most endpoints are read-only without authentication, but authentication is required for write operations (POST, PUT, DELETE).
+
 ## Endpoints
 
 ### List Employees
 
 - URL: `GET /api/employees/`
 - Description: Returns all employee records.
-- Response Example:
+- Authentication: Optional (read-only)
+
+Response Example:
 
 ```json
 [
@@ -34,7 +94,10 @@
 
 - URL: `POST /api/employees/`
 - Description: Create a new employee record.
-- Request Body:
+- Authentication: Required
+- Content-Type: `application/json`
+
+Request Body:
 
 ```json
 {
@@ -49,39 +112,48 @@
 }
 ```
 
-- Response: `201 Created`
+Response: `201 Created`
 
 ### Retrieve Employee
 
 - URL: `GET /api/employees/{id}/`
 - Description: Get details of a single employee by record ID.
+- Authentication: Optional (read-only)
 
 ### Update Employee
 
 - URL: `PUT /api/employees/{id}/`
 - Description: Replace employee record.
+- Authentication: Required
+- Content-Type: `application/json`
 
 ### Partial Update Employee
 
 - URL: `PATCH /api/employees/{id}/`
 - Description: Update one or more fields.
+- Authentication: Required
+- Content-Type: `application/json`
 
 ### Delete Employee
 
 - URL: `DELETE /api/employees/{id}/`
 - Description: Remove an employee record.
+- Authentication: Required
 
 ### Search Employees
 
 - URL: `GET /api/employees/search/?query={text}`
 - Description: Search employees by first name, last name, department, position, or email.
+- Authentication: Optional
 - Response: Array of matching employees.
 
 ### Department Statistics
 
 - URL: `GET /api/employees/stats/`
 - Description: Returns counts of employees by department.
-- Response Example:
+- Authentication: Optional
+
+Response Example:
 
 ```json
 {
@@ -91,3 +163,13 @@
   ]
 }
 ```
+
+## Error Codes
+
+- `200 OK`: Success
+- `201 Created`: Resource created
+- `204 No Content`: Resource deleted
+- `400 Bad Request`: Invalid request data
+- `401 Unauthorized`: Authentication required
+- `404 Not Found`: Resource not found
+- `500 Internal Server Error`: Server error

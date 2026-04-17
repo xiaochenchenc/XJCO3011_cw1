@@ -24,6 +24,46 @@
             <div class="col-md-12">
                 <h1 class="mb-4">Employee Management System</h1>
 
+                <!-- Authentication -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5>Authentication</h5>
+                    </div>
+                    <div class="card-body">
+                        <p id="authStatus" class="mb-3 text-muted">Not logged in. Write operations require login.</p>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <form id="loginForm">
+                                    <h6>Login</h6>
+                                    <div class="mb-2">
+                                        <input type="text" class="form-control" id="loginUsername" placeholder="Username" required>
+                                    </div>
+                                    <div class="mb-2">
+                                        <input type="password" class="form-control" id="loginPassword" placeholder="Password" required>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary btn-sm">Login</button>
+                                    <button type="button" class="btn btn-outline-secondary btn-sm ms-2" id="logoutBtn" onclick="logout()" style="display:none;">Logout</button>
+                                </form>
+                            </div>
+                            <div class="col-md-6">
+                                <form id="registerForm">
+                                    <h6>Register</h6>
+                                    <div class="mb-2">
+                                        <input type="text" class="form-control" id="registerUsername" placeholder="Username" required>
+                                    </div>
+                                    <div class="mb-2">
+                                        <input type="email" class="form-control" id="registerEmail" placeholder="Email" required>
+                                    </div>
+                                    <div class="mb-2">
+                                        <input type="password" class="form-control" id="registerPassword" placeholder="Password" required>
+                                    </div>
+                                    <button type="submit" class="btn btn-success btn-sm">Register</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Search Form -->
                 <div class="card mb-4">
                     <div class="card-header">
@@ -82,7 +122,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <button type="submit" class="btn btn-success">Add Employee</button>
+                            <button type="submit" class="btn btn-success" id="addEmployeeBtn">Add Employee</button>
                         </form>
                     </div>
                 </div>
@@ -155,7 +195,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary" onclick="updateEmployee()">Update</button>
+                    <button type="button" class="btn btn-primary" id="updateEmployeeBtn" onclick="updateEmployee()">Update</button>
                 </div>
             </div>
         </div>
