@@ -196,7 +196,8 @@ function displayEmployees(employees) {
             <table class="table table-striped">
                 <thead>
                     <tr>
-                        <th>ID</th>
+                        <th>JSON #</th>
+                        <th>Emp ID</th>
                         <th>Name</th>
                         <th>Email</th>
                         <th>Department</th>
@@ -215,6 +216,7 @@ function displayEmployees(employees) {
 
         html += `
             <tr>
+                <td>${employee.export_id != null ? employee.export_id : '—'}</td>
                 <td>${employee.emp_id}</td>
                 <td>${employee.first_name} ${employee.last_name}</td>
                 <td>${employee.email}</td>

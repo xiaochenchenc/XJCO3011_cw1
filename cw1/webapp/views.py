@@ -1,5 +1,6 @@
-from django.db.models import Count, Q
-from django.http import JsonResponse
+from django.db.models import Count, IntegerField, Q, Value
+from django.db.models.functions import Coalesce
+from django.http import Http404, JsonResponse
 from django.shortcuts import render
 from rest_framework import status, viewsets
 from rest_framework.authtoken.models import Token
@@ -27,7 +28,9 @@ def api_root(request):
             "employees": "/api/employees/",
             "search": "/api/employees/search/?query={text}",
             "stats": "/api/employees/stats/",
-            "auth": "/api/auth/",
+            "auth_login": "/api/auth/",
+            "auth_register": "/api/auth/register/",
+            "api_info": "/api/info/",
             "admin": "/admin/",
         }
     })
@@ -100,8 +103,43 @@ def register_user(request):
 class EmployeeViewSet(viewsets.ModelViewSet):
     """Employee CRUD API plus analytics and search endpoints."""
 
-    queryset = Employee.objects.all().order_by('emp_id')
     serializer_class = EmployeeSerializer
+
+    def get_queryset(self):
+        # Match employees.json order: use JSON `id` (stored as export_id) when present.
+        return (
+            Employee.objects.annotate(
+                _list_order=Coalesce(
+                    'export_id',
+                    Value(10**9),
+                    output_field=IntegerField(),
+                ),
+            ).order_by('_list_order', 'emp_id')
+        )
+
+    def get_object(self):
+        """
+        DRF detail URLs use the `{pk}` path segment. We resolve it as an integer in order:
+        database primary key (`id`), then `export_id`, then `emp_id`.
+        """
+        queryset = self.filter_queryset(self.get_queryset())
+        lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
+        raw = self.kwargs[lookup_url_kwarg]
+        try:
+            key = int(str(raw).strip())
+        except (TypeError, ValueError) as exc:
+            raise Http404 from exc
+
+        obj = queryset.filter(pk=key).first()
+        if obj is None:
+            obj = queryset.filter(export_id=key).first()
+        if obj is None:
+            obj = queryset.filter(emp_id=key).first()
+        if obj is None:
+            raise Http404
+
+        self.check_object_permissions(self.request, obj)
+        return obj
 
     @action(detail=False, methods=['get'])
     def stats(self, request):
@@ -124,12 +162,19 @@ class EmployeeViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        queryset = self.queryset.filter(
+        text_filters = (
             Q(first_name__icontains=query)
             | Q(last_name__icontains=query)
             | Q(department__icontains=query)
             | Q(position__icontains=query)
             | Q(email__icontains=query)
         )
+        if query.isdigit():
+            n = int(query)
+            queryset = self.get_queryset().filter(
+                text_filters | Q(emp_id=n) | Q(pk=n) | Q(export_id=n)
+            )
+        else:
+            queryset = self.get_queryset().filter(text_filters)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)

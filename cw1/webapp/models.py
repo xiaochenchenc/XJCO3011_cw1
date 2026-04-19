@@ -2,6 +2,13 @@ from django.db import models
 
 class Employee(models.Model):
     emp_id = models.PositiveIntegerField(unique=True)
+    export_id = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        unique=True,
+        db_index=True,
+        help_text="Sequence from employees.json `id` (for display/order matching the file).",
+    )
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
     email = models.EmailField(max_length=100, unique=True)

@@ -8,6 +8,7 @@ class EmployeeSerializer(serializers.ModelSerializer):
         model = Employee
         fields = [
             'id',
+            'export_id',
             'emp_id',
             'first_name',
             'last_name',
@@ -19,4 +20,4 @@ class EmployeeSerializer(serializers.ModelSerializer):
             'created_at',
             'updated_at',
         ]
-        read_only_fields = ['id', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'export_id', 'created_at', 'updated_at']

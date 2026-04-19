@@ -64,7 +64,9 @@ The web page includes an Authentication panel:
 
 ### REST API
 
-The API is available at `http://127.0.0.1:8000/api/` with the following endpoints:
+The API is available under `http://127.0.0.1:8000/api/`. A small JSON index of routes is at `http://127.0.0.1:8000/api/info/` (the bare `/api/` URL is the DRF browsable router root).
+
+Endpoints include:
 
 #### Authentication Endpoints
 - `POST /api/auth/register/` - Register new user
@@ -73,7 +75,7 @@ The API is available at `http://127.0.0.1:8000/api/` with the following endpoint
 #### Employee Endpoints
 - `GET /api/employees/` - List all employees
 - `POST /api/employees/` - Create employee (requires auth)
-- `GET /api/employees/{id}/` - Get employee details
+- `GET /api/employees/{id}/` - Get employee details (`{id}` = database `id`, then JSON `export_id`, then `emp_id`)
 - `PUT /api/employees/{id}/` - Update employee (requires auth)
 - `PATCH /api/employees/{id}/` - Partial update (requires auth)
 - `DELETE /api/employees/{id}/` - Delete employee (requires auth)
@@ -94,6 +96,34 @@ Most endpoints are read-only without authentication, but write operations requir
 
 For the browser UI, this token handling is automatic after successful login/register.
 
+## employees.json (optional bulk import)
+
+If you keep `employees.json` in the project root (array of objects with `emp_id`, names, `email`, etc.), you can load it into the database with:
+
+```bash
+python manage.py import_employees_json
+```
+
+Dry run (validate only):
+
+```bash
+python manage.py import_employees_json --dry-run
+```
+
+Custom path:
+
+```bash
+python manage.py import_employees_json --json path/to/employees.json
+```
+
+The importer stores the JSON **`id`** field as `export_id` (so list order and the “JSON #” column match your file). It still ignores `created_at` and `updated_at` (Django sets those on save).
+
+To wipe the database and reload exactly from the file (removes stray rows that break ordering or IDs):
+
+```bash
+python manage.py import_employees_json --clear --yes
+```
+
 ## API Documentation
 
 See `docs/API_DOCUMENTATION.md` for detailed endpoint documentation with examples.
@@ -113,9 +143,11 @@ cw1/
 │   ├── serializers.py     # DRF serializers
 │   ├── urls.py            # URL routing
 │   ├── admin.py           # Admin configuration
-│   └── tests.py           # API tests
+│   ├── tests.py           # API tests
+│   └── management/commands/  # import_employees_json
 ├── templates/             # HTML templates
 ├── static/                # CSS and JS files
 ├── docs/                  # Documentation
+├── employees.json       # Optional seed data (import command)
 └── README.md             # This file
 ```
