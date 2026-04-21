@@ -2,6 +2,8 @@
 
 This Django project implements an employee management web platform for the XJCO3011 coursework.
 
+**Repository:** https://github.com/xiaochenchenc/XJCO3011_cw1
+
 ## Features
 
 - **Web Interface**: Full-featured web application for managing employees
@@ -14,11 +16,13 @@ This Django project implements an employee management web platform for the XJCO3
 
 ## Setup
 
-1. Create a Python virtual environment and activate it.
+From the **repository root** (the folder that contains `manage.py`):
+
+1. Create a Python virtual environment and activate it (Python 3.10+ recommended).
 2. Install dependencies:
 
 ```bash
-pip install django djangorestframework
+pip install -r requirements.txt
 ```
 
 3. Run migrations:
@@ -39,6 +43,14 @@ python manage.py createsuperuser
 ```bash
 python manage.py runserver
 ```
+
+## Tests
+
+```bash
+python manage.py test
+```
+
+This runs the automated API and import-command tests in `webapp/tests.py`.
 
 ## Usage
 
@@ -128,26 +140,39 @@ python manage.py import_employees_json --clear --yes
 
 See `docs/API_DOCUMENTATION.md` for detailed endpoint documentation with examples.
 
+For coursework submission, the brief typically expects a **PDF** export of the API documentation: open the Markdown in an editor or browser and export/print to PDF (see the note at the top of that file).
+
 ## Technical Report
 
-See `docs/TECHNICAL_REPORT.md` for design rationale, stack decisions, testing approach, and GenAI declaration.
+See `docs/TECHNICAL_REPORT.md` for design rationale, stack decisions, testing approach, and **appendices** (GenAI declaration and ChatGPT screenshot in **Appendix A**, GitHub upload/commit evidence in **Appendix B**, submission links, checklists). Place evidence images next to that file under `docs/` (`ChatGPT.png`, `github_upload_history.png`) or adjust paths in the Markdown before PDF export.
 
-## Project Structure
+## Presentation slides
+
+Coursework visuals are drafted in `presentation_slides.md` at the repository root (export to PPTX/PDF per your module instructions).
+
+## Project structure
 
 ```
-cw1/
-├── cw1/                    # Project settings
-├── webapp/                 # Main app
-│   ├── models.py          # Employee model
-│   ├── views.py           # API and web views
-│   ├── serializers.py     # DRF serializers
-│   ├── urls.py            # URL routing
-│   ├── admin.py           # Admin configuration
-│   ├── tests.py           # API tests
-│   └── management/commands/  # import_employees_json
-├── templates/             # HTML templates
-├── static/                # CSS and JS files
-├── docs/                  # Documentation
-├── employees.json       # Optional seed data (import command)
-└── README.md             # This file
+<repository root>/
+├── manage.py
+├── requirements.txt
+├── README.md
+├── employees.json          # Optional seed data (import command)
+├── cw1/                    # Django project settings package
+│   ├── settings.py
+│   └── urls.py
+├── webapp/                 # Main application
+│   ├── models.py
+│   ├── views.py
+│   ├── serializers.py
+│   ├── urls.py
+│   ├── admin.py
+│   ├── tests.py
+│   └── management/commands/
+│       └── import_employees_json.py
+├── templates/
+├── static/
+└── docs/
+    ├── API_document.pdf
+    └── Technical_report.pdf
 ```
