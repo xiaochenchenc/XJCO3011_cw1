@@ -2,7 +2,7 @@
 
 This document matches the **current** Django + Django REST Framework implementation in this repository (`webapp/views.py`, `webapp/urls.py`, `webapp/serializers.py`, `cw1/settings.py`).
 
-**Local base URL (development):** `http://127.0.0.1:8000`
+**URL (development):** `https://caoyuchen688.pythonanywhere.com/`
 
 
 ## 1. Overview

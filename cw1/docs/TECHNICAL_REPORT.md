@@ -4,6 +4,7 @@
 **Project:** Employee Management Platform  
 **Repository:** https://github.com/xiaochenchenc/XJCO3011_cw1  
 **API document:** https://github.com/xiaochenchenc/XJCO3011_cw1/blob/main/cw1/API_document.pdf
+**Link** https://caoyuchen688.pythonanywhere.com/
 
 ## Abstract
 
@@ -195,6 +196,7 @@ Your **Technical Report (PDF)** is expected to include working links (as require
 |------|------|
 | Public GitHub repository | `https://github.com/xiaochenchenc/XJCO3011_cw1` |
 | API documentation (PDF) | https://github.com/xiaochenchenc/XJCO3011_cw1/blob/main/cw1/API_document.pdf
+| Website | `https://caoyuchen688.pythonanywhere.com/` |
 
 
 ## Appendix D — Submission checklist (GenAI + evidence)
