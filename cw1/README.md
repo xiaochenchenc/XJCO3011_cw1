@@ -175,6 +175,4 @@ Coursework visuals are drafted in `presentation_slides.md` at the repository roo
 └── docs/
     ├── API_document.pdf
     └── Technical_report.pdf
-    └── cw1 pre.pptx
-
 ```
